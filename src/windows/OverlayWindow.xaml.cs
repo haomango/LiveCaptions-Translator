@@ -37,6 +37,7 @@ namespace LiveCaptionsTranslator
             set
             {
                 onlyMode = value;
+                Translator.Setting.OverlayWindow.OnlyMode = value;
                 ResizeForOnlyMode();
             }
         }
@@ -66,6 +67,56 @@ namespace LiveCaptionsTranslator
 
             ApplyFontSize();
             ApplyBackgroundOpacity();
+
+            // Restore persisted caption layout: only-mode (Both/Subtitle/Translation) and order
+            RestorePersistedCaptionLayout();
+        }
+
+        private void RestorePersistedCaptionLayout()
+        {
+            // SwitchMode (caption ordering)
+            SwitchMode = Translator.Setting.OverlayWindow.SwitchMode;
+            if (SwitchMode == CaptionLocation.SubtitleTop)
+            {
+                Grid.SetRow(TranslatedCaptionCard, 1);
+                Grid.SetRow(OriginalCaptionCard, 0);
+            }
+            else
+            {
+                Grid.SetRow(TranslatedCaptionCard, 0);
+                Grid.SetRow(OriginalCaptionCard, 1);
+            }
+
+            // OnlyMode (visibility + MinHeight; size already restored from WindowBounds)
+            onlyMode = Translator.Setting.OverlayWindow.OnlyMode;
+            switch (onlyMode)
+            {
+                case CaptionVisible.TranslationOnly:
+                    OriginalCaptionCard.Visibility = Visibility.Collapsed;
+                    TranslatedCaptionCard.Visibility = Visibility.Visible;
+                    this.MinHeight = Math.Max(StyleConsts.DELTA_OVERLAY_HEIGHT,
+                        this.MinHeight - StyleConsts.DELTA_OVERLAY_HEIGHT);
+                    SetOnlyModeIcon(SymbolRegular.PanelTopExpand20);
+                    break;
+                case CaptionVisible.SubtitleOnly:
+                    OriginalCaptionCard.Visibility = Visibility.Visible;
+                    TranslatedCaptionCard.Visibility = Visibility.Collapsed;
+                    this.MinHeight = Math.Max(StyleConsts.DELTA_OVERLAY_HEIGHT,
+                        this.MinHeight - StyleConsts.DELTA_OVERLAY_HEIGHT);
+                    SetOnlyModeIcon(SymbolRegular.PanelTopContract20);
+                    break;
+                default:
+                    OriginalCaptionCard.Visibility = Visibility.Visible;
+                    TranslatedCaptionCard.Visibility = Visibility.Visible;
+                    SetOnlyModeIcon(SymbolRegular.PanelBottom20);
+                    break;
+            }
+        }
+
+        private void SetOnlyModeIcon(SymbolRegular symbol)
+        {
+            if (OnlyModeButton?.Icon is SymbolIcon icon)
+                icon.Symbol = symbol;
         }
 
         private void Border_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -293,6 +344,7 @@ namespace LiveCaptionsTranslator
                 Grid.SetRow(OriginalCaptionCard, 1);
                 SwitchMode = CaptionLocation.TranslationTop;
             }
+            Translator.Setting.OverlayWindow.SwitchMode = SwitchMode;
         }
 
         private void ClickThrough_Click(object sender, RoutedEventArgs e)

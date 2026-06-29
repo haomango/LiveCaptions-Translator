@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Reflection;
 using System.Windows;
 using Wpf.Ui.Appearance;
@@ -15,6 +16,14 @@ namespace LiveCaptionsTranslator
         public OverlayWindow? OverlayWindow { get; set; } = null;
         public bool IsAutoHeight { get; set; } = true;
 
+        /// <summary>
+        /// Set by TrayManager when the user chooses Exit to bypass the
+        /// minimize-to-tray interception in <see cref="OnClosing"/>.
+        /// </summary>
+        public bool ForceCloseFromTray { get; set; } = false;
+
+        private TrayManager? trayManager;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -27,7 +36,10 @@ namespace LiveCaptionsTranslator
                 IsAutoHeight = true;
                 CheckForFirstUse();
                 CheckForUpdates();
+                trayManager ??= new TrayManager(this);
             };
+            Closed += (s, e) => trayManager?.Dispose();
+            StateChanged += MainWindow_StateChanged;
 
             double screenWidth = SystemParameters.PrimaryScreenWidth;
             double screenHeight = SystemParameters.PrimaryScreenHeight;
@@ -86,17 +98,6 @@ namespace LiveCaptionsTranslator
             {
                 symbolIcon.Symbol = SymbolRegular.ClosedCaptionOff24;
                 symbolIcon.Filled = false;
-
-                switch (OverlayWindow.OnlyMode)
-                {
-                    case CaptionVisible.TranslationOnly:
-                        OverlayWindow.OnlyMode = CaptionVisible.SubtitleOnly;
-                        OverlayWindow.OnlyMode = CaptionVisible.Both;
-                        break;
-                    case CaptionVisible.SubtitleOnly:
-                        OverlayWindow.OnlyMode = CaptionVisible.Both;
-                        break;
-                }
 
                 OverlayWindow.Close();
                 OverlayWindow = null;
@@ -180,7 +181,7 @@ namespace LiveCaptionsTranslator
             }
             catch (Exception ex)
             {
-                SnackbarHost.Show("[ERROR] Update Check Failed.", ex.Message, SnackbarType.Error,
+                SnackbarHost.Show("[错误] 检查更新失败。", ex.Message, SnackbarType.Error,
                     timeout: 2, closeButton: true);
 
                 return;
@@ -194,12 +195,12 @@ namespace LiveCaptionsTranslator
             {
                 var dialog = new Wpf.Ui.Controls.MessageBox
                 {
-                    Title = "New Version Available",
-                    Content = $"A new version has been detected: {latestVersion}\n" +
-                              $"Current version: {currentVersion}\n" +
-                              $"Please visit GitHub to download the latest release.",
-                    PrimaryButtonText = "Update",
-                    CloseButtonText = "Ignore this version"
+                    Title = "发现新版本",
+                    Content = $"检测到新版本：{latestVersion}\n" +
+                              $"当前版本：{currentVersion}\n" +
+                              $"请前往 GitHub 下载最新版本。",
+                    PrimaryButtonText = "前往更新",
+                    CloseButtonText = "忽略此版本"
                 };
                 var result = await dialog.ShowDialogAsync();
 
@@ -216,7 +217,7 @@ namespace LiveCaptionsTranslator
                     }
                     catch (Exception ex)
                     {
-                        SnackbarHost.Show("[ERROR] Open Browser Failed.", ex.Message, SnackbarType.Error,
+                        SnackbarHost.Show("[错误] 打开浏览器失败。", ex.Message, SnackbarType.Error,
                             timeout: 2, closeButton: true);
                     }
                 }
@@ -247,6 +248,38 @@ namespace LiveCaptionsTranslator
 
             if (IsAutoHeight && maxHeight > 0 && Height > maxHeight)
                 Height = maxHeight;
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            // If user explicitly chose "Exit" from tray, let the app close normally.
+            if (ForceCloseFromTray)
+            {
+                base.OnClosing(e);
+                return;
+            }
+
+            if (Translator.Setting?.MainWindow?.MinimizeToTray == true)
+            {
+                e.Cancel = true;
+                Hide();
+                trayManager?.ShowBalloon("LiveCaptions Translator",
+                    "已最小化到系统托盘，双击托盘图标可恢复。");
+                return;
+            }
+            base.OnClosing(e);
+        }
+
+        private void MainWindow_StateChanged(object? sender, EventArgs e)
+        {
+            if (WindowState == WindowState.Minimized &&
+                Translator.Setting?.MainWindow?.MinimizeToTray == true)
+            {
+                // Hide first to avoid the minimized window briefly flashing in the taskbar,
+                // then reset state so the next Show() restores at the saved size.
+                Hide();
+                WindowState = WindowState.Normal;
+            }
         }
     }
 }
