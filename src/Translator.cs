@@ -164,7 +164,7 @@ namespace LiveCaptionsTranslator
                 // Check LiveCaptions.exe still alive
                 if (Window == null)
                 {
-                    Caption.DisplayTranslatedCaption = "[WARNING] LiveCaptions was unexpectedly closed, restarting...";
+                    Caption.DisplayTranslatedCaption = "[警告] Windows 实时字幕已意外退出，正在重启……";
                     Window = LiveCaptionsHandler.LaunchLiveCaptions();
                     Caption.DisplayTranslatedCaption = "";
                 }
@@ -199,8 +199,8 @@ namespace LiveCaptionsTranslator
                 if (LogOnlyFlag)
                 {
                     Caption.TranslatedCaption = string.Empty;
-                    Caption.DisplayTranslatedCaption = "[Paused]";
-                    Caption.OverlayNoticePrefix = "[Paused]";
+                    Caption.DisplayTranslatedCaption = "[已暂停]";
+                    Caption.OverlayNoticePrefix = "[已暂停]";
                     Caption.OverlayCurrentTranslation = string.Empty;
                 }
                 else if (!string.IsNullOrEmpty(RegexPatterns.NoticePrefix().Replace(
@@ -262,7 +262,7 @@ namespace LiveCaptionsTranslator
             }
             catch (Exception ex)
             {
-                return ($"[ERROR] Translation Failed: {ex.Message}", isChoke);
+                return ($"[ERROR] 翻译失败：{ex.Message}", isChoke);
             }
 
             return (translatedText, isChoke);
@@ -295,7 +295,7 @@ namespace LiveCaptionsTranslator
             }
             catch (Exception ex)
             {
-                SnackbarHost.Show("[ERROR] Logging history failed.", ex.Message, SnackbarType.Error,
+                SnackbarHost.Show("[错误] 记录历史失败。", ex.Message, SnackbarType.Error,
                     timeout: 2, closeButton: true);
             }
         }
@@ -315,7 +315,7 @@ namespace LiveCaptionsTranslator
             }
             catch (Exception ex)
             {
-                SnackbarHost.Show("[ERROR] Logging history failed.", ex.Message, SnackbarType.Error,
+                SnackbarHost.Show("[错误] 记录历史失败。", ex.Message, SnackbarType.Error,
                     timeout: 2, closeButton: true);
             }
         }

@@ -7,6 +7,7 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UseWPF>true</UseWPF>
+		<UseWindowsForms>true</UseWindowsForms>
 		<RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
 		<PublishReadyToRun>false</PublishReadyToRun>
 		<PublishSingleFile>true</PublishSingleFile>
@@ -21,6 +22,14 @@
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 		<Platforms>AnyCPU;ARM64</Platforms>
 	</PropertyGroup>
+
+	<!-- UseWindowsForms adds implicit usings for System.Drawing / System.Windows.Forms which
+	     clash with the WPF System.Windows types used across the project. Remove them so only
+	     the dedicated tray code (TrayManager.cs) needs explicit usings. -->
+	<ItemGroup>
+		<Using Remove="System.Drawing" />
+		<Using Remove="System.Windows.Forms" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<ApplicationDefinition Include="src\App.xaml">
