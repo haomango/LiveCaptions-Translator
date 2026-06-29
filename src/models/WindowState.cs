@@ -72,6 +72,7 @@ namespace LiveCaptionsTranslator.models
 
         private CaptionVisible onlyMode = CaptionVisible.Both;
         private CaptionLocation switchMode = CaptionLocation.TranslationTop;
+        private bool topmost = true;
 
         public int FontSize
         {
@@ -143,6 +144,15 @@ namespace LiveCaptionsTranslator.models
             {
                 switchMode = value;
                 OnPropertyChanged("SwitchMode");
+            }
+        }
+        public bool Topmost
+        {
+            get => topmost;
+            set
+            {
+                topmost = value;
+                OnPropertyChanged("Topmost");
             }
         }
 

@@ -35,12 +35,14 @@ namespace LiveCaptionsTranslator.utils
             window.Top = bound.Top;
             window.Left = bound.Left;
 
-            // Restore the size only for a manually sized
-            if (window.SizeToContent == SizeToContent.Manual)
-            {
+            // Restore each dimension independently. Previously, a window with
+            // SizeToContent != Manual lost both Width and Height on restore;
+            // we only need to skip the dimension that is auto-driven by content.
+            var mode = window.SizeToContent;
+            if (mode != SizeToContent.Width && mode != SizeToContent.WidthAndHeight)
                 window.Width = bound.Width;
+            if (mode != SizeToContent.Height && mode != SizeToContent.WidthAndHeight)
                 window.Height = bound.Height;
-            }
         }
     }
 }

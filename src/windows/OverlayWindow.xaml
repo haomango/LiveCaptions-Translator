@@ -19,7 +19,6 @@
     ShowInTaskbar="False"
     Topmost="True"
     WindowStyle="None"
-    SizeToContent="Height"
     mc:Ignorable="d">
 
     <Window.Resources>
@@ -40,13 +39,19 @@
             MouseLeftButtonDown="Border_MouseLeftButtonDown">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <Grid.Resources>
                     <Style x:Key="CaptionBlockStyle" TargetType="TextBlock">
                         <Setter Property="TextWrapping" Value="Wrap" />
                         <Setter Property="VerticalAlignment" Value="Stretch" />
+                    </Style>
+                    <Style x:Key="CaptionScrollStyle" TargetType="ScrollViewer">
+                        <Setter Property="VerticalScrollBarVisibility" Value="Hidden" />
+                        <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="BorderThickness" Value="0" />
                     </Style>
                 </Grid.Resources>
 
@@ -55,42 +60,46 @@
                     Grid.Row="0"
                     Margin="5,2,5,2"
                     Padding="8"
-                    VerticalAlignment="Top"
+                    VerticalAlignment="Stretch"
                     Background="Transparent"
                     BorderThickness="0">
-                    <local:StrokeDecorator
-                        x:Name="TranslatedCaptionDecorator"
-                        Stroke="Black"
-                        StrokeThickness="0">
-                        <TextBlock
-                            x:Name="TranslatedCaption"
-                            FontSize="18"
-                            Style="{StaticResource CaptionBlockStyle}">
-                            <Run x:Name="NoticePrefixRun" Text="{Binding OverlayNoticePrefix, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" />
-                            <Run x:Name="PreviousTranslationRun" Text="{Binding OverlayPreviousTranslation, Mode=OneWay}" />
-                            <Run x:Name="CurrentTranslationRun" Text="{Binding OverlayCurrentTranslation, UpdateSourceTrigger=PropertyChanged}" />
-                        </TextBlock>
-                    </local:StrokeDecorator>
+                    <ScrollViewer x:Name="TranslatedCaptionScroll" Style="{StaticResource CaptionScrollStyle}">
+                        <local:StrokeDecorator
+                            x:Name="TranslatedCaptionDecorator"
+                            Stroke="Black"
+                            StrokeThickness="0">
+                            <TextBlock
+                                x:Name="TranslatedCaption"
+                                FontSize="18"
+                                Style="{StaticResource CaptionBlockStyle}">
+                                <Run x:Name="NoticePrefixRun" Text="{Binding OverlayNoticePrefix, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" />
+                                <Run x:Name="PreviousTranslationRun" Text="{Binding OverlayPreviousTranslation, Mode=OneWay}" />
+                                <Run x:Name="CurrentTranslationRun" Text="{Binding OverlayCurrentTranslation, UpdateSourceTrigger=PropertyChanged}" />
+                            </TextBlock>
+                        </local:StrokeDecorator>
+                    </ScrollViewer>
                 </ui:Card>
                 <ui:Card
                     x:Name="OriginalCaptionCard"
                     Grid.Row="1"
                     Margin="5,2,5,2"
                     Padding="8"
-                    VerticalAlignment="Top"
+                    VerticalAlignment="Stretch"
                     Background="Transparent"
                     BorderThickness="0">
-                    <local:StrokeDecorator
-                        x:Name="OriginalCaptionDecorator"
-                        Stroke="Black"
-                        StrokeThickness="0">
-                        <TextBlock
-                            x:Name="OriginalCaption"
-                            FontSize="15"
-                            Style="{StaticResource CaptionBlockStyle}"
-                            Text="{Binding OverlayOriginalCaption, UpdateSourceTrigger=PropertyChanged}">
-                        </TextBlock>
-                    </local:StrokeDecorator>
+                    <ScrollViewer x:Name="OriginalCaptionScroll" Style="{StaticResource CaptionScrollStyle}">
+                        <local:StrokeDecorator
+                            x:Name="OriginalCaptionDecorator"
+                            Stroke="Black"
+                            StrokeThickness="0">
+                            <TextBlock
+                                x:Name="OriginalCaption"
+                                FontSize="15"
+                                Style="{StaticResource CaptionBlockStyle}"
+                                Text="{Binding OverlayOriginalCaption, UpdateSourceTrigger=PropertyChanged}">
+                            </TextBlock>
+                        </local:StrokeDecorator>
+                    </ScrollViewer>
                 </ui:Card>
 
                 <StackPanel
@@ -192,6 +201,14 @@
                         Icon="{ui:SymbolIcon ArrowSyncCircle20,
                                              Filled=False}"
                         ToolTip="切换原文/译文上下顺序" />
+                    <ui:Button
+                        x:Name="TopmostButton"
+                        Background="#FFAAAAAA"
+                        Click="TopmostButton_Click"
+                        Cursor="Hand"
+                        Icon="{ui:SymbolIcon Pin16,
+                                             Filled=True}"
+                        ToolTip="窗口置顶" />
                     <ui:Button
                         x:Name="ClickThrough"
                         Background="#FFAAAAAA"

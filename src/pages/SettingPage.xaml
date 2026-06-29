@@ -299,8 +299,15 @@
             </StackPanel>
 
             <StackPanel Margin="15,10,0,0" Orientation="Vertical">
+                <TextBlock Margin="2.5,0,0,5" Text="最小化到托盘" />
                 <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
-                    <TextBlock Margin="2.5,0,0,5" Text="最小化到托盘" />
+                    <ui:ToggleSwitch
+                        Width="90"
+                        Height="30"
+                        Padding="10,4,10,7"
+                        IsChecked="{Binding MainWindow.MinimizeToTray, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        OffContent="关"
+                        OnContent="开" />
                     <Button
                         x:Name="MinimizeToTrayInfo"
                         Width="15"
@@ -320,13 +327,6 @@
                         </TextBlock>
                     </ui:Flyout>
                 </StackPanel>
-                <ui:ToggleSwitch
-                    Width="90"
-                    Height="30"
-                    Padding="10,4,10,7"
-                    IsChecked="{Binding MainWindow.MinimizeToTray, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                    OffContent="关"
-                    OnContent="开" />
             </StackPanel>
         </StackPanel>
     </Grid>

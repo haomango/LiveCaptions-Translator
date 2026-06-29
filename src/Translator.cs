@@ -117,10 +117,9 @@ namespace LiveCaptionsTranslator
                 // `DisplayOriginalCaption`: The sentence to be displayed on Main Window.
                 if (string.CompareOrdinal(Caption.DisplayOriginalCaption, latestCaption) != 0)
                 {
+                    // Full sentence goes through; the caption box on the main page is a
+                    // fixed-size scroll viewer, so we no longer truncate long sentences.
                     Caption.DisplayOriginalCaption = latestCaption;
-                    // If the last sentence is too long, truncate it when displayed.
-                    Caption.DisplayOriginalCaption =
-                        TextUtil.ShortenDisplaySentence(Caption.DisplayOriginalCaption, TextUtil.VERYLONG_THRESHOLD);
                 }
 
                 // Prepare for `OriginalCaption`. If Expanded, only retain the complete sentence.
@@ -207,10 +206,9 @@ namespace LiveCaptionsTranslator
                              translatedText, string.Empty).Trim()) &&
                          string.CompareOrdinal(Caption.TranslatedCaption, translatedText) != 0)
                 {
-                    // Main page
+                    // Main page (fixed-size scroll viewer shows the full translation)
                     Caption.TranslatedCaption = translatedText;
-                    Caption.DisplayTranslatedCaption =
-                        TextUtil.ShortenDisplaySentence(Caption.TranslatedCaption, TextUtil.VERYLONG_THRESHOLD);
+                    Caption.DisplayTranslatedCaption = Caption.TranslatedCaption;
 
                     // Overlay window
                     if (Caption.TranslatedCaption.Contains("[ERROR]") || Caption.TranslatedCaption.Contains("[WARNING]"))

@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
@@ -55,23 +54,19 @@ namespace LiveCaptionsTranslator
 
         private void TranslatedChanged(object sender, PropertyChangedEventArgs e)
         {
+            // Keep the latest text visible by auto-scrolling to the end of the caption
+            // box. The font size stays fixed; long content scrolls instead of resizing.
             if (e.PropertyName == nameof(Translator.Caption.DisplayTranslatedCaption))
-            {
-                if (Encoding.UTF8.GetByteCount(Translator.Caption.DisplayTranslatedCaption) >= TextUtil.LONG_THRESHOLD)
-                {
-                    Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        this.TranslatedCaption.FontSize = 15;
-                    }), DispatcherPriority.Background);
-                }
-                else
-                {
-                    Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        this.TranslatedCaption.FontSize = 18;
-                    }), DispatcherPriority.Background);
-                }
-            }
+                ScrollCaptionToEnd(TranslatedCaptionScroll);
+            else if (e.PropertyName == nameof(Translator.Caption.DisplayOriginalCaption))
+                ScrollCaptionToEnd(OriginalCaptionScroll);
+        }
+
+        private void ScrollCaptionToEnd(ScrollViewer? scroll)
+        {
+            if (scroll == null)
+                return;
+            Dispatcher.BeginInvoke(new Action(() => scroll.ScrollToEnd()), DispatcherPriority.Background);
         }
 
         public void CollapseTranslatedCaption(bool isCollapsed)
@@ -80,11 +75,15 @@ namespace LiveCaptionsTranslator
 
             if (isCollapsed)
             {
+                // Log cards mode: caption rows shrink to fit content, log cards take the rest.
+                OriginalCaption_Row.Height = (GridLength)converter.ConvertFromString("Auto");
                 TranslatedCaption_Row.Height = (GridLength)converter.ConvertFromString("Auto");
                 LogCards.Visibility = Visibility.Visible;
             }
             else
             {
+                // Caption-only mode: both rows split the page equally with fixed font sizes.
+                OriginalCaption_Row.Height = (GridLength)converter.ConvertFromString("*");
                 TranslatedCaption_Row.Height = (GridLength)converter.ConvertFromString("*");
                 LogCards.Visibility = Visibility.Collapsed;
             }

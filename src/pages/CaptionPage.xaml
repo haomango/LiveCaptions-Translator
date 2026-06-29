@@ -12,8 +12,8 @@
 
     <Grid Margin="5,5,15,5">
         <Grid.RowDefinitions>
-            <RowDefinition x:Name="OriginalCaption_Row" Height="Auto" />
-            <RowDefinition x:Name="TranslatedCaption_Row" Height="Auto" />
+            <RowDefinition x:Name="OriginalCaption_Row" Height="*" />
+            <RowDefinition x:Name="TranslatedCaption_Row" Height="*" />
             <RowDefinition x:Name="CaptionLogCard_Row" Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.Resources>
@@ -21,21 +21,29 @@
                 <Setter Property="TextWrapping" Value="Wrap" />
                 <Setter Property="VerticalAlignment" Value="Stretch" />
             </Style>
+            <Style x:Key="CaptionScrollStyle" TargetType="ScrollViewer">
+                <Setter Property="VerticalScrollBarVisibility" Value="Hidden" />
+                <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+            </Style>
         </Grid.Resources>
 
         <ui:Card
             Grid.Row="0"
             Padding="8"
             VerticalAlignment="Stretch">
-            <TextBlock
-                x:Name="OriginalCaption"
-                Background="Transparent"
-                Cursor="Hand"
-                FontSize="15"
-                MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
-                Style="{StaticResource CaptionBlockStyle}"
-                Text="{Binding DisplayOriginalCaption, UpdateSourceTrigger=PropertyChanged}"
-                ToolTip="点击复制" />
+            <ScrollViewer x:Name="OriginalCaptionScroll" Style="{StaticResource CaptionScrollStyle}">
+                <TextBlock
+                    x:Name="OriginalCaption"
+                    Background="Transparent"
+                    Cursor="Hand"
+                    FontSize="15"
+                    MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
+                    Style="{StaticResource CaptionBlockStyle}"
+                    Text="{Binding DisplayOriginalCaption, UpdateSourceTrigger=PropertyChanged}"
+                    ToolTip="点击复制" />
+            </ScrollViewer>
         </ui:Card>
 
         <ui:Card
@@ -44,15 +52,17 @@
             Margin="0,3,0,0"
             Padding="8"
             VerticalAlignment="Stretch">
-            <TextBlock
-                x:Name="TranslatedCaption"
-                Background="Transparent"
-                Cursor="Hand"
-                FontSize="18"
-                MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
-                Style="{StaticResource CaptionBlockStyle}"
-                Text="{Binding DisplayTranslatedCaption, UpdateSourceTrigger=PropertyChanged}"
-                ToolTip="点击复制" />
+            <ScrollViewer x:Name="TranslatedCaptionScroll" Style="{StaticResource CaptionScrollStyle}">
+                <TextBlock
+                    x:Name="TranslatedCaption"
+                    Background="Transparent"
+                    Cursor="Hand"
+                    FontSize="18"
+                    MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"
+                    Style="{StaticResource CaptionBlockStyle}"
+                    Text="{Binding DisplayTranslatedCaption, UpdateSourceTrigger=PropertyChanged}"
+                    ToolTip="点击复制" />
+            </ScrollViewer>
         </ui:Card>
 
         <ui:Card

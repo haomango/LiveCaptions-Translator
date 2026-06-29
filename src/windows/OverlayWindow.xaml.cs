@@ -38,7 +38,7 @@ namespace LiveCaptionsTranslator
             {
                 onlyMode = value;
                 Translator.Setting.OverlayWindow.OnlyMode = value;
-                ResizeForOnlyMode();
+                ApplyOnlyModeVisibility();
             }
         }
         public CaptionLocation SwitchMode { get; set; } = CaptionLocation.TranslationTop;
@@ -70,6 +70,10 @@ namespace LiveCaptionsTranslator
 
             // Restore persisted caption layout: only-mode (Both/Subtitle/Translation) and order
             RestorePersistedCaptionLayout();
+
+            // Apply persisted topmost state so the overlay actually stays on top of
+            // other windows by default, and so the user's last preference is honored.
+            ApplyTopmost(Translator.Setting.OverlayWindow.Topmost);
         }
 
         private void RestorePersistedCaptionLayout()
@@ -87,22 +91,19 @@ namespace LiveCaptionsTranslator
                 Grid.SetRow(OriginalCaptionCard, 1);
             }
 
-            // OnlyMode (visibility + MinHeight; size already restored from WindowBounds)
+            // OnlyMode (visibility only; window size is fully restored from WindowBounds
+            // and from the user-resized state, no manual MinHeight tweaking anymore)
             onlyMode = Translator.Setting.OverlayWindow.OnlyMode;
             switch (onlyMode)
             {
                 case CaptionVisible.TranslationOnly:
                     OriginalCaptionCard.Visibility = Visibility.Collapsed;
                     TranslatedCaptionCard.Visibility = Visibility.Visible;
-                    this.MinHeight = Math.Max(StyleConsts.DELTA_OVERLAY_HEIGHT,
-                        this.MinHeight - StyleConsts.DELTA_OVERLAY_HEIGHT);
                     SetOnlyModeIcon(SymbolRegular.PanelTopExpand20);
                     break;
                 case CaptionVisible.SubtitleOnly:
                     OriginalCaptionCard.Visibility = Visibility.Visible;
                     TranslatedCaptionCard.Visibility = Visibility.Collapsed;
-                    this.MinHeight = Math.Max(StyleConsts.DELTA_OVERLAY_HEIGHT,
-                        this.MinHeight - StyleConsts.DELTA_OVERLAY_HEIGHT);
                     SetOnlyModeIcon(SymbolRegular.PanelTopContract20);
                     break;
                 default:
@@ -194,6 +195,25 @@ namespace LiveCaptionsTranslator
         private void TranslatedChanged(object sender, PropertyChangedEventArgs e)
         {
             ApplyFontSize();
+
+            // Keep the latest caption visible inside the fixed-size scroll viewers.
+            if (e.PropertyName == nameof(Translator.Caption.OverlayCurrentTranslation) ||
+                e.PropertyName == nameof(Translator.Caption.OverlayNoticePrefix) ||
+                e.PropertyName == nameof(Translator.Caption.OverlayPreviousTranslation))
+            {
+                ScrollCaptionToEnd(TranslatedCaptionScroll);
+            }
+            else if (e.PropertyName == nameof(Translator.Caption.OverlayOriginalCaption))
+            {
+                ScrollCaptionToEnd(OriginalCaptionScroll);
+            }
+        }
+
+        private void ScrollCaptionToEnd(ScrollViewer? scroll)
+        {
+            if (scroll == null)
+                return;
+            Dispatcher.BeginInvoke(new Action(() => scroll.ScrollToEnd()), DispatcherPriority.Background);
         }
 
         private void Window_MouseEnter(object sender, MouseEventArgs e)
@@ -355,35 +375,35 @@ namespace LiveCaptionsTranslator
             ControlPanel.Visibility = Visibility.Collapsed;
         }
 
-        public void ResizeForOnlyMode()
+        private void TopmostButton_Click(object sender, RoutedEventArgs e)
         {
-            if (onlyMode == CaptionVisible.TranslationOnly)
-            {
-                // (1) Translation Only
-                OriginalCaptionCard.Visibility = Visibility.Collapsed;
-                this.MinHeight -= StyleConsts.DELTA_OVERLAY_HEIGHT;
-                this.Height -= StyleConsts.DELTA_OVERLAY_HEIGHT;
-                this.Top += StyleConsts.DELTA_OVERLAY_HEIGHT;
-            }
-            if (onlyMode == CaptionVisible.SubtitleOnly)
-            {
-                // restore
-                OriginalCaptionCard.Visibility = Visibility.Visible;
-                this.Top -= StyleConsts.DELTA_OVERLAY_HEIGHT;
-                this.Height += StyleConsts.DELTA_OVERLAY_HEIGHT;
-                this.MinHeight += StyleConsts.DELTA_OVERLAY_HEIGHT;
+            ApplyTopmost(!this.Topmost);
+        }
 
-                // (2) Subtitle Only
-                TranslatedCaptionCard.Visibility = Visibility.Collapsed;
-                this.MinHeight -= StyleConsts.DELTA_OVERLAY_HEIGHT;
-                this.Height -= StyleConsts.DELTA_OVERLAY_HEIGHT;
-            }
-            else if (onlyMode == CaptionVisible.Both)
+        private void ApplyTopmost(bool enabled)
+        {
+            this.Topmost = enabled;
+            Translator.Setting.OverlayWindow.Topmost = enabled;
+            if (TopmostButton?.Icon is SymbolIcon icon)
+                icon.Filled = enabled;
+        }
+
+        public void ApplyOnlyModeVisibility()
+        {
+            switch (onlyMode)
             {
-                // restore
-                TranslatedCaptionCard.Visibility = Visibility.Visible;
-                this.Height += StyleConsts.DELTA_OVERLAY_HEIGHT;
-                this.MinHeight += StyleConsts.DELTA_OVERLAY_HEIGHT;
+                case CaptionVisible.TranslationOnly:
+                    OriginalCaptionCard.Visibility = Visibility.Collapsed;
+                    TranslatedCaptionCard.Visibility = Visibility.Visible;
+                    break;
+                case CaptionVisible.SubtitleOnly:
+                    OriginalCaptionCard.Visibility = Visibility.Visible;
+                    TranslatedCaptionCard.Visibility = Visibility.Collapsed;
+                    break;
+                default:
+                    OriginalCaptionCard.Visibility = Visibility.Visible;
+                    TranslatedCaptionCard.Visibility = Visibility.Visible;
+                    break;
             }
         }
 
